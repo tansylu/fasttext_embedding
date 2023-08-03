@@ -18,7 +18,7 @@ data['Context'] = data.apply(lambda row: f"{row['L1']} {row['L2']} {row['L3']} {
 product_contexts = embed(data['Context'].tolist())
 
 # Read new product titles from the "filtered.xlsx" file columns "Subcategory" and "Parent Category"
-new_data = pd.read_excel('filtered.xlsx', usecols=['Subcategory', 'Parent Category'])
+filtered = pd.read_excel('filtered.xlsx', usecols=['Subcategory', 'Parent Category'])
 
 # Data Cleaning for new product titles
 def clean_text(text):
@@ -26,11 +26,11 @@ def clean_text(text):
     text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
     return text
 
-new_data['Subcategory'] = new_data['Subcategory'].apply(clean_text)
-new_data['Parent Category'] = new_data['Parent Category'].apply(clean_text)
+filtered['Subcategory'] = filtered['Subcategory'].apply(clean_text)
+filtered['Parent Category'] = filtered['Parent Category'].apply(clean_text)
 
 # Combine "Subcategory" and "Parent Category" columns to create a single text context for new products
-new_product_titles = new_data.apply(lambda row: f"{row['Subcategory']} {row['Parent Category']}", axis=1)
+new_product_titles = filtered.apply(lambda row: f"{row['Subcategory']} {row['Parent Category']}", axis=1)
 
 # Create semantic context for new product titles
 new_product_contexts = embed(new_product_titles.tolist())
@@ -40,12 +40,21 @@ matches = []
 for new_title, new_context in zip(new_product_titles, new_product_contexts):
     similarities = cosine_similarity([new_context], product_contexts)
     best_match_index = similarities.argmax()
-    best_match_title = data['Product Title'][best_match_index]
-    best_match_category = data['Context'][best_match_index]  # Use 'Context' instead of 'Target'
-    matches.append((new_title, best_match_title, best_match_category))
+    best_match_row = data.loc[best_match_index]
+
+    matches.append((
+        new_title,
+        best_match_row['Product Title'],
+        best_match_row['L1'],
+        best_match_row['L2'],
+        best_match_row['L3'],
+        best_match_row['L4'],
+        best_match_row['L5'],
+        best_match_row['L6']
+    ))
 
 # Create a DataFrame to store the results
-results_df = pd.DataFrame(matches, columns=['New Product Title', 'Best Match', 'Best Match Category'])
+results_df = pd.DataFrame(matches, columns=['Subcategory', 'Matched_product_from_codex', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6'])
 
 # Save the results to a new Excel file
 results_df.to_excel('predictions.xlsx', index=False)
