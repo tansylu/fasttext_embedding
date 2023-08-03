@@ -7,7 +7,7 @@ from gensim.models import FastText
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Download the necessary resources for NLTK
-nltk.download('punkt')
+# nltk.download('punkt')
 
 def get_word_embeddings(text, model):
     # Tokenize the text into individual words and multi-word expressions (phrases)
@@ -64,22 +64,39 @@ model.train(sentences, total_examples=model.corpus_count, epochs=30)
 # Create embeddings for the filtered data
 filtered_embeddings_dict = create_embeddings_for_table(filtered_data, model)
 
-# Find similar products for each item in the "Product" column of the codex data and display their categories
+
+def create_combined_description(row):
+    # Combine words from the specified columns into one description
+    combined_description = " ".join(str(row[column]) for column in ['IndentedTree','L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'help', 'examples'])
+    return combined_description
+
+
+# Load data from Excel sheet and create DataFrames
+codex_data = pd.read_excel("codex.xlsx")
+
+# Create a new DataFrame to store the combined descriptions and embeddings for the codex data
+codex_combined_df = codex_data.copy()
+codex_combined_df['Combined Description'] = codex_data.apply(create_combined_description, axis=1)
+
+# Get embeddings for the combined descriptions
+codex_combined_df['Embedding'] = codex_combined_df['Combined Description'].apply(lambda x: get_average_embedding(get_word_embeddings(x, model)))
+
+# Find similar products for each combined description and display their categories
 results = []
-for product in codex_data['Product']:
-    product_embeddings = get_word_embeddings(product, model)
-    query_product_embedding = get_average_embedding(product_embeddings)
+for _, row in codex_combined_df.iterrows():
+    query_product_embedding = row['Embedding']
     best_match_product = find_most_similar_product(query_product_embedding, filtered_embeddings_dict)
-    
+
     if best_match_product is not None:
         category = filtered_data.loc[filtered_data['Subcategory'] == best_match_product, 'Parent Category'].values
         if len(category) > 0:
             category = category[0]
         else:
             category = "Not found"
-        results.append([product, best_match_product, category])
+        result_row = [row['IndentedTree'], best_match_product, category]
+        results.append(result_row)
     else:
-        results.append([product, "Not found", "Not found"])
+        results.append([row['IndentedTree'], "Not found", "Not found"])
 
 # Create a new DataFrame for the results
 output_columns = ['Query Product', 'Similar Product', 'Category']
