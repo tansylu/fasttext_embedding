@@ -18,7 +18,7 @@ data['Context'] = data.apply(lambda row: f"{row['L1']} {row['L2']} {row['L3']} {
 product_contexts = embed(data['Context'].tolist())
 
 # Read new product titles from the "filtered.xlsx" file columns "Subcategory" and "Parent Category"
-filtered = pd.read_excel('exiobase_ecoinvent.xlsx', usecols=['ProductTypeName_of_hiot', 'ProductTypeName'])
+filtered = pd.read_excel('food_related_emissions.xlsx', usecols=['ProductTypeName_of_hiot', 'ProductTypeName', 'CountryCode', 'CarbonFootprint','unit'])
 
 # Data Cleaning for new product titles
 def clean_text(text):
@@ -46,11 +46,14 @@ for codex_title, codex_context in zip(data['Product Title'], product_contexts):
     matches.append((
         codex_title,
         best_match_row['ProductTypeName_of_hiot'],
-        best_match_row['ProductTypeName']
+        best_match_row['ProductTypeName'],
+         best_match_row['CarbonFootprint'],
+         best_match_row['unit'],
+         best_match_row['CountryCode']
     ))
 
 # Create a DataFrame to store the results
-results_df = pd.DataFrame(matches, columns=['Codex_product_title', 'Matched_ProductTypeName_of_hiot', 'Matched_ProductTypeName_of_hiot'])
+results_df = pd.DataFrame(matches, columns=['Codex_product_title', 'Matched_ProductTypeName_of_hiot', 'Matched_ProductTypeName_of_hiot','CarbonFootprint', 'unit', 'COuntry COde'])
 
 # Save the results to a new Excel file
 results_df.to_excel('codex_matches.xlsx', index=False)
