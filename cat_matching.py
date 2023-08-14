@@ -3,7 +3,6 @@ import tensorflow_hub as hub
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 import re
-from nltk.corpus import stopwords
 
 # Load the data from the Excel file (Make sure to have openpyxl installed for .xlsx files)
 data = pd.read_excel('codex.xlsx')
