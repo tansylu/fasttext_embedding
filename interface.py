@@ -18,4 +18,4 @@ demo = gr.Interface(fn=match,
                             gr.outputs.Textbox(label="Country Code")
                         ],
                     title="Match your food item to a carbon emissions category")
-demo.launch(share=True)  
+demo.launch()  
