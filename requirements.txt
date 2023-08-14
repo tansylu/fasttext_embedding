@@ -1,0 +1,7 @@
+gradio==3.40.1
+numpy==1.23.2
+pandas==1.4.3
+scikit_learn==1.2.2
+tensorflow==2.12.0
+tensorflow_hub==0.14.0
+tensorflow_intel==2.12.0
